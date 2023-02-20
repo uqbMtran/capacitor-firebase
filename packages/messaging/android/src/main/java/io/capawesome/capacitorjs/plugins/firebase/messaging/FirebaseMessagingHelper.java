@@ -18,6 +18,8 @@ import com.getcapacitor.Logger;
 import com.getcapacitor.PluginCall;
 import com.getcapacitor.util.WebColor;
 import com.google.firebase.messaging.RemoteMessage;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 public class FirebaseMessagingHelper {
 
@@ -83,7 +85,7 @@ public class FirebaseMessagingHelper {
 
     @RequiresApi(api = Build.VERSION_CODES.O)
     @Nullable
-    public static NotificationChannel createNotificationChannelFromPluginCall(PluginCall call, String packageName) {
+    public static NotificationChannel createNotificationChannel(PluginCall call, String packageName) {
         String id = call.getString("id");
         if (id == null) {
             call.reject(FirebaseMessagingPlugin.ERROR_ID_MISSING);
@@ -101,6 +103,80 @@ public class FirebaseMessagingHelper {
         boolean lights = call.getBoolean("lights", false);
         String lightColor = call.getString("lightColor", null);
         String sound = call.getString("sound", null);
+
+        NotificationChannel notificationChannel = new NotificationChannel(id, name, importance);
+        notificationChannel.setDescription(description);
+        notificationChannel.setLockscreenVisibility(visibility);
+        notificationChannel.enableVibration(vibrate);
+        notificationChannel.enableLights(lights);
+        if (lightColor != null) {
+            try {
+                notificationChannel.setLightColor(WebColor.parseColor(lightColor));
+            } catch (Exception ex) {
+                Logger.error("setLightColor failed.", ex);
+            }
+        }
+        if (sound != null && !sound.isEmpty()) {
+            if (sound.contains(".")) {
+                sound = sound.substring(0, sound.lastIndexOf('.'));
+            }
+            AudioAttributes audioAttributes = new AudioAttributes.Builder()
+                .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                .setUsage(AudioAttributes.USAGE_NOTIFICATION)
+                .build();
+            Uri soundUri = Uri.parse(ContentResolver.SCHEME_ANDROID_RESOURCE + "://" + packageName + "/raw/" + sound);
+            notificationChannel.setSound(soundUri, audioAttributes);
+        }
+        return notificationChannel;
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.O)
+    @Nullable
+    public static NotificationChannel createNotificationChannel(JSONObject config, String packageName) throws Exception {
+        String id = config.getString("id");
+        if (id == null) {
+            throw new Exception(FirebaseMessagingPlugin.ERROR_ID_MISSING);
+        }
+
+        String name = config.getString("name");
+        if (name == null) {
+            throw new Exception(FirebaseMessagingPlugin.ERROR_NAME_MISSING);
+        }
+
+        int importance = NotificationManager.IMPORTANCE_DEFAULT;
+        try {
+            importance = config.getInt("importance");
+        } catch (Exception ex) {}
+
+        String description = "";
+        try {
+            description = config.getString("description");
+        } catch (Exception ex) {}
+
+        int visibility = NotificationCompat.VISIBILITY_PUBLIC;
+        try {
+            visibility = config.getInt("visibility");
+        } catch (Exception ex) {}
+
+        boolean vibrate = false;
+        try {
+            vibrate = config.getBoolean("vibrate");
+        } catch (Exception ex) {}
+
+        boolean lights = false;
+        try {
+            lights = config.getBoolean("lights");
+        } catch (Exception ex) {}
+
+        String lightColor = null;
+        try {
+            lightColor = config.getString("lightColor");
+        } catch (Exception ex) {}
+
+        String sound = null;
+        try {
+            sound = config.getString("sound");
+        } catch (Exception ex) {}
 
         NotificationChannel notificationChannel = new NotificationChannel(id, name, importance);
         notificationChannel.setDescription(description);

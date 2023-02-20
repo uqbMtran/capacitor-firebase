@@ -35,10 +35,12 @@ public class FirebaseMessagingPlugin extends Plugin {
     public static Bridge staticBridge = null;
     public static String lastToken = null;
     public static RemoteMessage lastRemoteMessage = null;
+    private FirebaseMessagingConfig config;
     private FirebaseMessaging implementation;
 
     public void load() {
-        implementation = new FirebaseMessaging(this);
+        config = getFirebaseMessagingConfig();
+        implementation = new FirebaseMessaging(this, config);
         staticBridge = this.bridge;
 
         if (lastToken != null) {
@@ -219,7 +221,7 @@ public class FirebaseMessagingPlugin extends Plugin {
                 call.unavailable();
                 return;
             }
-            NotificationChannel notificationChannel = FirebaseMessagingHelper.createNotificationChannelFromPluginCall(
+            NotificationChannel notificationChannel = FirebaseMessagingHelper.createNotificationChannel(
                 call,
                 getContext().getPackageName()
             );
@@ -290,6 +292,17 @@ public class FirebaseMessagingPlugin extends Plugin {
         result.put("actionId", "tap");
         result.put("notification", notificationResult);
         notifyListeners(NOTIFICATION_ACTION_PERFORMED_EVENT, result, true);
+    }
+
+    private FirebaseMessagingConfig getFirebaseMessagingConfig() {
+        FirebaseMessagingConfig config = new FirebaseMessagingConfig();
+
+        JSONObject defaultNotificationChannel = getConfig().getObject("defaultNotificationChannel") == null
+            ? config.getDefaultNotificationChannel()
+            : getConfig().getObject("defaultNotificationChannel");
+        config.setDefaultNotificationChannel(defaultNotificationChannel);
+
+        return config;
     }
 
     private static FirebaseMessagingPlugin getFirebaseMessagingPluginInstance() {

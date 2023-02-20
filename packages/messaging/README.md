@@ -103,9 +103,10 @@ If you prefer to prevent token autogeneration, disable FCM auto initialization b
 
 On iOS you can configure the way the push notifications are displayed when the app is in foreground.
 
-| Prop                      | Type                              | Description                                                                                                                                                                                                                                                                                                                                                                                 | Default                                  | Since |
-| ------------------------- | --------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------- | ----- |
-| **`presentationOptions`** | <code>PresentationOption[]</code> | This is an array of strings you can combine. Possible values in the array are: - `badge`: badge count on the app icon is updated (default value) - `sound`: the device will ring/vibrate when the push notification is received - `alert`: the push notification is displayed in a native dialog An empty array can be provided if none of the options are desired. Only available for iOS. | <code>["badge", "sound", "alert"]</code> | 0.2.2 |
+| Prop                             | Type                                        | Description                                                                                                                                                                                                                                                                                                                                                                                 | Default                                                                                                                                             | Since |
+| -------------------------------- | ------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- | ----- |
+| **`presentationOptions`**        | <code>PresentationOption[]</code>           | This is an array of strings you can combine. Possible values in the array are: - `badge`: badge count on the app icon is updated (default value) - `sound`: the device will ring/vibrate when the push notification is received - `alert`: the push notification is displayed in a native dialog An empty array can be provided if none of the options are desired. Only available for iOS. | <code>["badge", "sound", "alert"]</code>                                                                                                            | 0.2.2 |
+| **`defaultNotificationChannel`** | <code><a href="#channel">Channel</a></code> | The default notification channel to create on startup on Android (SDK 26+). Notification channels are required on Android (SDK 26+) to display notifications. You can either create a channel yourself or let the plugin create a default channel for you. Only available for Android (SDK 26+).                                                                                            | <code>{ id: 'PushDefaultForeground', name: 'Push Notifications Foreground', description: 'Push notifications in foreground', importance: 4 }</code> | 1.4.0 |
 
 ### Examples
 
@@ -115,7 +116,8 @@ In `capacitor.config.json`:
 {
   "plugins": {
     "FirebaseMessaging": {
-      "presentationOptions": ["badge", "sound", "alert"]
+      "presentationOptions": ["badge", "sound", "alert"],
+      "defaultNotificationChannel": undefined
     }
   }
 }
@@ -132,6 +134,7 @@ const config: CapacitorConfig = {
   plugins: {
     FirebaseMessaging: {
       presentationOptions: ["badge", "sound", "alert"],
+      defaultNotificationChannel: undefined,
     },
   },
 };

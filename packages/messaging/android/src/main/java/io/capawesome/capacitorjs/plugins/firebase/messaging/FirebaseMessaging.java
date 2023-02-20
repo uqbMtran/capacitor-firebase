@@ -12,18 +12,25 @@ import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import com.getcapacitor.JSArray;
 import com.getcapacitor.JSObject;
+import com.getcapacitor.Logger;
 import java.util.List;
+import org.json.JSONObject;
 
 public class FirebaseMessaging {
 
     private FirebaseMessagingPlugin plugin;
+    private FirebaseMessagingConfig config;
     private NotificationManager notificationManager;
     private com.google.firebase.messaging.FirebaseMessaging firebaseMessagingInstance;
 
-    public FirebaseMessaging(FirebaseMessagingPlugin plugin) {
+    public FirebaseMessaging(FirebaseMessagingPlugin plugin, FirebaseMessagingConfig config) {
         this.plugin = plugin;
+        this.config = config;
         this.notificationManager = (NotificationManager) plugin.getActivity().getSystemService(Context.NOTIFICATION_SERVICE);
         this.firebaseMessagingInstance = com.google.firebase.messaging.FirebaseMessaging.getInstance();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            this.createDefaultNotificationChannel();
+        }
     }
 
     public void getToken(final GetTokenResultCallback resultCallback) {
@@ -93,5 +100,21 @@ public class FirebaseMessaging {
     @RequiresApi(api = Build.VERSION_CODES.O)
     public List<NotificationChannel> getNotificationChannels() {
         return notificationManager.getNotificationChannels();
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.O)
+    private void createDefaultNotificationChannel() {
+        JSONObject defaultNotificationsChannelConfig = this.config.getDefaultNotificationChannel();
+        if (defaultNotificationsChannelConfig == null) {
+            return;
+        }
+        NotificationChannel notificationChannel = null;
+        try {
+            notificationChannel =
+                FirebaseMessagingHelper.createNotificationChannel(defaultNotificationsChannelConfig, plugin.getContext().getPackageName());
+        } catch (Exception ex) {
+            Logger.error("createDefaultNotificationChannel failed.", ex);
+        }
+        createChannel(notificationChannel);
     }
 }

@@ -2,8 +2,6 @@
 
 import type { PermissionState, PluginListenerHandle } from '@capacitor/core';
 
-export type PresentationOption = 'badge' | 'sound' | 'alert';
-
 declare module '@capacitor/cli' {
   export interface PluginsConfig {
     /**
@@ -24,10 +22,24 @@ declare module '@capacitor/cli' {
        * @default ["badge", "sound", "alert"]
        * @since 0.2.2
        */
-      presentationOptions: PresentationOption[];
+      presentationOptions?: PresentationOption[];
+      /**
+       * The default notification channel to create on startup on Android (SDK 26+).
+       *
+       * Notification channels are required on Android (SDK 26+) to display notifications.
+       * You can either create a channel yourself or let the plugin create a default channel for you.
+       *
+       * Only available for Android (SDK 26+).
+       *
+       * @default { id: 'PushDefaultForeground', name: 'Push Notifications Foreground', description: 'Push notifications in foreground', importance: 4 }
+       * @since 1.4.0
+       */
+      defaultNotificationChannel?: Channel;
     };
   }
 }
+
+export type PresentationOption = 'badge' | 'sound' | 'alert';
 
 export interface FirebaseMessagingPlugin {
   /**
